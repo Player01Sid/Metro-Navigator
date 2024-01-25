@@ -1,8 +1,6 @@
+
 import tkinter as tk
 from tkinter import ttk
-
-import folium
-
 
 class MetroNavigatorApp:
     def __init__(self, root):
@@ -10,14 +8,14 @@ class MetroNavigatorApp:
         self.root.title("Metro Navigator App")
 
         # Create dropdowns for from and to stations
-        self.from_station_label = ttk.Label(root, text="FROM STATION:")
+        self.from_station_label = ttk.Label(root, text="From Station:")
         self.from_station_label.grid(row=0, column=0, padx=10, pady=10)
         self.from_station_var = tk.StringVar()
         self.from_station_dropdown = ttk.Combobox(root, textvariable=self.from_station_var)
         self.from_station_dropdown['values'] = ['Station A', 'Station B', 'Station C']  # Add your station names
         self.from_station_dropdown.grid(row=0, column=1, padx=10, pady=10, columnspan=2)
 
-        self.to_station_label = ttk.Label(root, text="TO STATION:")
+        self.to_station_label = ttk.Label(root, text="To Station:")
         self.to_station_label.grid(row=1, column=0, padx=10, pady=10)
         self.to_station_var = tk.StringVar()
         self.to_station_dropdown = ttk.Combobox(root, textvariable=self.to_station_var)
@@ -25,34 +23,22 @@ class MetroNavigatorApp:
         self.to_station_dropdown.grid(row=1, column=1, padx=10, pady=10, columnspan=2)
 
         # Create a "Find Route" button
-        self.find_route_button = ttk.Button(root, text="FIND ROUTE", command=self.find_route)
+        self.find_route_button = ttk.Button(root, text="Find Route", command=self.find_route)
         self.find_route_button.grid(row=2, column=0, columnspan=3, pady=10, sticky='ew')  # Centered horizontally
-        
-       
 
-       
-        
         # Create a table with time taken information
         self.time_table_label = ttk.Label(root, text="Time Taken Table:")
-        self.time_table_label.grid(row=0, column=0, columnspan=2, pady=10)
+        self.time_table_label.grid(row=3, column=0, columnspan=3, pady=10)
 
-        self.time_table_frame = ttk.Frame(root)
-        self.time_table_frame.grid(row=1, column=0, columnspan=2, pady=10)
+        self.time_table_frame = ttk.Frame(root, borderwidth=2, relief='groove')
+        self.time_table_frame.grid(row=4, column=0, columnspan=3, pady=10)
 
-        
-       
-       
-        
-        # Create a Treeview widget with a thick outline border
-        self.time_table = ttk.Treeview(self.time_table_frame, columns=('From', 'To', 'Time Taken'), style="Outline.Treeview")
+        self.time_table = ttk.Treeview(self.time_table_frame, columns=('From', 'To', 'Time Taken'))
+
         self.time_table.heading('#1', text='From')
         self.time_table.heading('#2', text='To')
         self.time_table.heading('#3', text='Time Taken')
-        self.time_table.grid(row=0, column=0, pady=10, padx=10)
-
-        
-       
-        
+        self.time_table.pack()
 
         # Add sample data to the time taken table
         data = [
@@ -69,7 +55,7 @@ class MetroNavigatorApp:
             self.time_table.item(i, tags=f'row{i}')  # Apply the tag to the item
 
         # Create a linked list label
-        self.linked_list_label = ttk.Label(root, text="Linked List:")
+        self.linked_list_label = ttk.Label(root, text="ROUTES:")
         self.linked_list_label.grid(row=5, column=0, columnspan=3, pady=10)
 
         # Create a linked list display (simplified, you would need to implement a linked list class)
@@ -107,5 +93,3 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = MetroNavigatorApp(root)
     root.mainloop()
-    
-    
