@@ -31,8 +31,8 @@ class MetroNavigatorApp:
         self.find_route_button = ttk.Button(root, text="FIND ROUTE", command=self.find_route)
         self.find_route_button.grid(row=2, column=0, columnspan=3, pady=10, sticky='ew')  # Centered horizontally
 
-        # Create a canvas for drawing stations and links
-        self.canvas = tk.Canvas(root, width=500, height=100)
+        # Create a canvas for drawing stations, links, and time information
+        self.canvas = tk.Canvas(root, width=200, height=300)
         self.canvas.grid(row=3, column=0, columnspan=3, pady=10)
 
     def find_route(self):
@@ -42,20 +42,27 @@ class MetroNavigatorApp:
         # Replace this with your actual route-finding logic
         # Assuming a simple route for demonstration purposes
         route_found = [f"Station {i}" for i in range(ord(from_station[-1]), ord(to_station[-1]) + 1)]
+        time_taken = len(route_found) * 5  # Replace with your time calculation logic
 
-        # Draw red dots and links on the canvas
+        # Draw red dots and lines on the canvas with station names
         self.canvas.delete("all")  # Clear existing drawings
 
         for i, station in enumerate(route_found):
-            x = 30 + i * 30
-            y = 50
+            x = 100
+            y = 50 + i * 30
             radius = 5
             self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="red")  # Draw red dot
 
+            # Add station names on the left side of the red dot
+            self.canvas.create_text(x - radius - 5, y, text=station, anchor="e", fill="black")
+
             if i < len(route_found) - 1:
                 # Draw a line between stations
-                x_next = x + 30
-                self.canvas.create_line(x + radius, y, x_next - radius, y, fill="red", width=2)
+                y_next = y + 30
+                self.canvas.create_line(x, y + radius, x, y_next - radius, fill="red", width=2)
+
+                # Display time information on the right side of the red dot
+                self.canvas.create_text(x + radius + 5, y, text=f"{time_taken} min", anchor="w", fill="blue")
 
 if __name__ == "__main__":
     root = tk.Tk()
