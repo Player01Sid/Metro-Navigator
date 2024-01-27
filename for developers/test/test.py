@@ -1,3 +1,4 @@
+#THIS IS THE MAIN CODE 
 import tkinter as tk
 from tkinter import ttk
 

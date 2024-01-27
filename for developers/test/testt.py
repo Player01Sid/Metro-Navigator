@@ -1,41 +1,40 @@
 import tkinter as tk
 from tkinter import ttk
 
-class MetroNavigatorApp:
-    def __init__(self, root):
-        # ... (previous code remains unchanged)
+def navigate():
+    from_station = from_station_var.get()
+    to_station = to_station_var.get()
+    result_label.config(text=f"Navigate from {from_station} to {to_station}")
 
-        # Create a canvas for drawing stations, links, and time information
-        self.canvas = tk.Canvas(root, width=500, height=100)
-        self.canvas.grid(row=3, column=0, columnspan=3, pady=10)
+# Create the main window
+window = tk.Tk()
+window.title("Metro Navigation")
 
-    def find_route(self):
-        from_station = self.from_station_var.get()
-        to_station = self.to_station_var.get()
+# Create and place labels
+from_label = tk.Label(window, text="From Station:")
+from_label.grid(row=0, column=0, padx=10, pady=10)
 
-        # Replace this with your actual route-finding logic
-        # Assuming a simple route for demonstration purposes
-        route_found = [f"Station {i}" for i in range(ord(from_station[-1]), ord(to_station[-1]) + 1)]
-        time_taken = len(route_found) * 5  # Replace with your time calculation logic
+to_label = tk.Label(window, text="To Station:")
+to_label.grid(row=1, column=0, padx=10, pady=10)
 
-        # Draw red dots and links on the canvas
-        self.canvas.delete("all")  # Clear existing drawings
+result_label = tk.Label(window, text="")
+result_label.grid(row=3, column=0, columnspan=2, pady=10)
 
-        for i, station in enumerate(route_found):
-            x = 30 + i * 30
-            y = 50
-            radius = 5
-            self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="red")  # Draw red dot
+# Create and place dropdown lists
+stations = ["Station A", "Station B", "Station C", "Station D", "Station E"]
+from_station_var = tk.StringVar()
+from_station_dropdown = ttk.Combobox(window, textvariable=from_station_var, values=stations)
+from_station_dropdown.grid(row=0, column=1, padx=10, pady=10)
+from_station_dropdown.current(0)  # Set default value
 
-            if i < len(route_found) - 1:
-                # Draw a line between stations
-                x_next = x + 30
-                self.canvas.create_line(x + radius, y, x_next - radius, y, fill="red", width=2)
+to_station_var = tk.StringVar()
+to_station_dropdown = ttk.Combobox(window, textvariable=to_station_var, values=stations)
+to_station_dropdown.grid(row=1, column=1, padx=10, pady=10)
+to_station_dropdown.current(1)  # Set default value
 
-                # Display time information
-                self.canvas.create_text((x + x_next) // 2, y - 10, text=f"{time_taken} min", fill="blue")
+# Create and place navigate button
+navigate_button = tk.Button(window, text="Navigate", command=navigate)
+navigate_button.grid(row=2, column=0, columnspan=2, pady=10)
 
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = MetroNavigatorApp(root)
-    root.mainloop()
+# Start the main event loop
+window.mainloop()
