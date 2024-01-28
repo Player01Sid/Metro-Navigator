@@ -18,7 +18,7 @@ class MetroMap(ctypes.Structure):
     ]
 
 # Load the DLL
-metro_dll = ctypes.CDLL('./metro.dll')  # Replace with the actual DLL filename
+metro_dll = ctypes.CDLL(r'C:\Users\gulsh\OneDrive\Documents\GitHub\Metro-Navigator\for developers\test\dll testing\metro.dll')
 
 # Load the functions from the DLL
 get_route_text = metro_dll.getRouteText
@@ -43,6 +43,7 @@ free_map.argtypes = [ctypes.POINTER(MetroMap)]
 dijkstra = metro_dll.dijkstra
 dijkstra.argtypes = [ctypes.POINTER(MetroMap), ctypes.c_char_p, ctypes.c_char_p]
 dijkstra.restype = ctypes.c_char_p
+
 
 initiate = metro_dll.initiate
 initiate.restype = ctypes.POINTER(MetroMap)
