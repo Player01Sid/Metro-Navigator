@@ -6,5 +6,6 @@ c_file = "C:\\Users\\gulsh\\OneDrive\\Documents\\GitHub\\Metro-Navigator\\for de
 >>>>>>> d4463d04e1e6b761a856820b2e5f06977cb2657b
 print(c_file)
 c_fun = CDLL(c_file)
-result = c_fun.produc(2,5)
-print(result)
+
+rsult = c_fun.produc(2,5)
+print(rsult)
