@@ -143,14 +143,9 @@ __declspec(dllexport) void freeMap(struct MetroMap *map)
 }
 
 // Dijkstra's Algorithm to find the shortest route
-__declspec(dllexport) void dijkstra(struct MetroMap *map, char startStation[], char endStation[])
+__declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], char endStation[])
 {
     int numVertices = map->numStations;
-    printf("%s", startStation);
-    for (int i = 0; i < numVertices; i++)
-    {
-        printf("Station Name: %s\n", map->graph[i]->station);
-    }
 
     int *distance = (int *)malloc(numVertices * sizeof(int));
     int *visited = (int *)malloc(numVertices * sizeof(int));
@@ -180,8 +175,7 @@ __declspec(dllexport) void dijkstra(struct MetroMap *map, char startStation[], c
 
     if (startIndex == -1 || endIndex == -1)
     {
-        printf("Invalid start or end station.\n");
-        return;
+        return "Invalid start or end station.\n";
     }
 
     distance[startIndex] = 0;
@@ -236,11 +230,15 @@ __declspec(dllexport) void dijkstra(struct MetroMap *map, char startStation[], c
 
     if (distance[endIndex] == INT_MAX)
     {
-        printf("No path found from %s to %s.\n", startStation, endStation);
-        return;
+        char *string;
+        strcpy(string, "No path found from");
+        strcat(string, startStation);
+        strcat(string, " to ");
+        strcat(string, endStation);
+        return string;
     }
 
-    printf("Shortest route from %s to %s (Time: %d):\n", startStation, endStation, distance[endIndex]);
+    // printf("Shortest route from %s to %s (Time: %d):\n", startStation, endStation, distance[endIndex]);
 
     // Backtrack to find the path
     int currentVertex = endIndex;
@@ -252,22 +250,25 @@ __declspec(dllexport) void dijkstra(struct MetroMap *map, char startStation[], c
         path[pathLength++] = currentVertex;
         currentVertex = previous[currentVertex];
     }
-
+    char *string;
+    strcpy(string, "Route: ");
     // Print the path in reverse order
     for (int i = pathLength - 1; i >= 0; i--)
     {
-        printf("%s", map->graph[path[i]]->station);
+
+        strcat(string, map->graph[path[i]]->station);
         if (i > 0)
         {
-            printf(" -> ");
+            strcat(string, " -> ");
         }
     }
 
-    printf("\n");
+    // printf("\n");
 
     free(distance);
     free(visited);
     free(previous);
+    return string;
 }
 
 __declspec(dllexport) struct MetroMap *initiate()
