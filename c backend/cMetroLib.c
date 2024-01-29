@@ -67,7 +67,7 @@ __declspec(dllexport) void addStation(struct MetroMap *map, char station[], int 
     }
 }
 
-__declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], char station2[], int lineColor)
+__declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], char station2[])
 {
     int index1 = -1, index2 = -1;
     for (int i = 0; i < map->numStations; i++)
@@ -84,45 +84,51 @@ __declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], 
 
     if (index1 != -1 && index2 != -1)
     {
-        struct Node *newNode1 = createNode(station2, lineColor);
+        int color[2];
+
+        color[0] = map->graph[index1]->lineColors[0];
+        color[1] = map->graph[index2]->lineColors[0];
+
+        struct Node *newNode1 = createNode(station2, color[0]);
         newNode1->next = map->graph[index1]->next;
         map->graph[index1]->next = newNode1;
 
         // Ensure bidirectional connection
-        struct Node *newNode2 = createNode(station1, lineColor);
+        struct Node *newNode2 = createNode(station1, color[1]);
         newNode2->next = map->graph[index2]->next;
         map->graph[index2]->next = newNode2;
-    }
-}
 
-__declspec(dllexport) void printMap(struct MetroMap *map)
-{
-    for (int i = 0; i < map->numStations; i++)
-    {
-        struct Node *current = map->graph[i]->next; // Skip the empty station node
-        printf("%s (Time: %d, Lines: ", map->graph[i]->station, map->graph[i]->time);
-
-        for (int j = 0; j < map->graph[i]->numLines; j++)
+        if (color[0] != color[1])
         {
-            printf("%d ", map->graph[i]->lineColors[j]);
-        }
+            int *temp1 = map->graph[index1]->lineColors;
+            int *temp2 = map->graph[index2]->lineColors;
+            int idx1 = 0; // Start index at 0
+            int idx2 = 0; // Start index at 0
 
-        printf("): ");
-
-        while (current != NULL)
-        {
-            printf("%s (Time: %d, Lines: ", current->station, current->time);
-
-            for (int j = 0; j < current->numLines; j++)
+            // Find the end of the lineColors array for station 1
+            while (temp1[idx1] != 0 && idx1 < MAX_LINES)
             {
-                printf("%d ", current->lineColors[j]);
+                idx1++;
             }
 
-            printf("), ");
-            current = current->next;
-        }
+            // Find the end of the lineColors array for station 2
+            while (temp2[idx2] != 0 && idx2 < MAX_LINES)
+            {
+                idx2++;
+            }
 
-        printf("\n");
+            // Add the new color to the lineColors array for station 1
+            if (idx1 < MAX_LINES)
+            {
+                temp1[idx1] = color[1];
+            }
+
+            // Add the new color to the lineColors array for station 2
+            if (idx2 < MAX_LINES)
+            {
+                temp2[idx2] = color[0];
+            }
+        }
     }
 }
 
@@ -175,7 +181,9 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
 
     if (startIndex == -1 || endIndex == -1)
     {
-        return "Invalid start or end station.\n";
+        char *string = (char *)malloc(100 * sizeof(char));
+        string = "Invalid start or end station.\n";
+        return string;
     }
 
     distance[startIndex] = 0;
@@ -230,7 +238,7 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
 
     if (distance[endIndex] == INT_MAX)
     {
-        char *string;
+        char *string = (char *)malloc(100 * sizeof(char));
         strcpy(string, "No path found from");
         strcat(string, startStation);
         strcat(string, " to ");
@@ -250,20 +258,22 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
         path[pathLength++] = currentVertex;
         currentVertex = previous[currentVertex];
     }
-    char *string;
+    char *string = (char *)malloc(100 * sizeof(char));
     strcpy(string, "Route: ");
     // Print the path in reverse order
     for (int i = pathLength - 1; i >= 0; i--)
     {
-
         strcat(string, map->graph[path[i]]->station);
+        strcat(string, ":");
+        int temp = map->graph[path[i]]->lineColors[0];
+        char color[10]; // Assuming the integer won't exceed 10 digits
+        sprintf(color, "%d", temp);
+        strcat(string, color);
         if (i > 0)
         {
             strcat(string, " -> ");
         }
     }
-
-    // printf("\n");
 
     free(distance);
     free(visited);
@@ -271,10 +281,27 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
     return string;
 }
 
+__declspec(dllexport) int *colors(struct MetroMap *map, char targetStation[])
+{
+    int numVertices = map->numStations;
+    for (int i = 0; i < numVertices; i++)
+    {
+        if (strcmp(map->graph[i]->station, targetStation) == 0)
+        {
+            return map->graph[i]->lineColors;
+        }
+    }
+}
+
+__declspec(dllexport) int noStations(struct MetroMap *map)
+{
+    return map->numStations / 2;
+}
+
 __declspec(dllexport) struct MetroMap *initiate()
 {
     // Initialize the metro map
-    struct MetroMap *metroMap = initializeMap(8);
+    struct MetroMap *metroMap = initializeMap(26);
 
     // Add stations to the metro map
     addStation(metroMap, "Station A", 1); // Line 1
@@ -282,26 +309,55 @@ __declspec(dllexport) struct MetroMap *initiate()
     addStation(metroMap, "Station C", 1); // Line 3
     addStation(metroMap, "Station D", 1); // Line 1
     addStation(metroMap, "Station E", 1); // Line 2
-    addStation(metroMap, "Station F", 2); // Line 3
-    addStation(metroMap, "Station G", 2); // Line 1
-    addStation(metroMap, "Station H", 2); // Line 2
+    addStation(metroMap, "Station F", 1); // Line 3
+    addStation(metroMap, "Station G", 1); // Line 1
+    addStation(metroMap, "Station H", 1); // Line 2
     addStation(metroMap, "Station I", 3); // Line 2
     addStation(metroMap, "Station J", 3); // Line 2
     addStation(metroMap, "Station K", 3); // Line 2
+    addStation(metroMap, "Station L", 3); // Line 2
+    addStation(metroMap, "Station M", 3); // Line 2
+    addStation(metroMap, "Station N", 3); // Line 2
+    addStation(metroMap, "Station O", 3); // Line 2
+    addStation(metroMap, "Station P", 4); // Line 2
+    addStation(metroMap, "Station Q", 4); // Line 2
+    addStation(metroMap, "Station R", 4); // Line 2
+    addStation(metroMap, "Station S", 4); // Line 2
+    addStation(metroMap, "Station T", 4); // Line 2
+    addStation(metroMap, "Station U", 4); // Line 2
+    addStation(metroMap, "Station V", 2); // Line 2
+    addStation(metroMap, "Station W", 2); // Line 2
+    addStation(metroMap, "Station X", 2); // Line 2
+    addStation(metroMap, "Station Y", 2); // Line 2
+    addStation(metroMap, "Station Z", 2); // Line 2
 
     // Add connections between stations
-    addConnection(metroMap, "Station A", "Station B", 1); // Line 1
-    addConnection(metroMap, "Station B", "Station C", 1); // Line 2
-    addConnection(metroMap, "Station C", "Station D", 1); // Line 3
-    addConnection(metroMap, "Station D", "Station E", 1); // Line 1
-    addConnection(metroMap, "Station C", "Station F", 1); // Line 2
-    addConnection(metroMap, "Station F", "Station G", 1); // Line 3
-    addConnection(metroMap, "Station G", "Station H", 1); // Line 1
-    addConnection(metroMap, "Station G", "Station I", 1); // Line 2
-    addConnection(metroMap, "Station G", "Station I", 1); // Line 2
-    addConnection(metroMap, "Station I", "Station J", 1); // Line 2
-    addConnection(metroMap, "Station J", "Station k", 1); // Line 2
-    addConnection(metroMap, "Station K", "Station D", 1); // Line 2
+    addConnection(metroMap, "Station A", "Station B"); // Line 1
+    addConnection(metroMap, "Station B", "Station C"); // Line 2
+    addConnection(metroMap, "Station C", "Station D"); // Line 3
+    addConnection(metroMap, "Station D", "Station E"); // Line 1
+    addConnection(metroMap, "Station E", "Station F"); // Line 2
+    addConnection(metroMap, "Station F", "Station G"); // Line 3
+    addConnection(metroMap, "Station G", "Station H"); // Line 1
+    addConnection(metroMap, "Station I", "Station J"); // Line 2
+    addConnection(metroMap, "Station J", "Station E"); // Line 2
+    addConnection(metroMap, "Station E", "Station K"); // Line 2
+    addConnection(metroMap, "Station K", "Station L"); // Line 2
+    addConnection(metroMap, "Station L", "Station M"); // Line 2
+    addConnection(metroMap, "Station M", "Station N"); // Line 2
+    addConnection(metroMap, "Station N", "Station O"); // Line 2
+    addConnection(metroMap, "Station P", "Station Q"); // Line 2
+    addConnection(metroMap, "Station Q", "Station R"); // Line 2
+    addConnection(metroMap, "Station R", "Station L"); // Line 2
+    addConnection(metroMap, "Station L", "Station S"); // Line 2
+    addConnection(metroMap, "Station S", "Station T"); // Line 2
+    addConnection(metroMap, "Station T", "Station U"); // Line 2
+    addConnection(metroMap, "Station V", "Station B"); // Line 2
+    addConnection(metroMap, "Station B", "Station W"); // Line 2
+    addConnection(metroMap, "Station W", "Station X"); // Line 2
+    addConnection(metroMap, "Station X", "Station L"); // Line 2
+    addConnection(metroMap, "Station L", "Station Y"); // Line 2
+    addConnection(metroMap, "Station Y", "Station Z"); // Line 2
 
     return metroMap;
 }
