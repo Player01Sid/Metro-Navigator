@@ -6,7 +6,8 @@
 typedef struct {
     char name[20];
     int id;
-} Station;
+} 
+Station;
 
 // Structure to represent an edge between two stations
 typedef struct {

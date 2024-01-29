@@ -49,11 +49,6 @@ dijkstra = metro_dll.dijkstra
 dijkstra.argtypes = [ctypes.POINTER(MetroMap), ctypes.c_char_p, ctypes.c_char_p]
 dijkstra.restype = ctypes.c_char_p
 
-
-
-
-
-
 # Load the initiate function from the DLL
 initiate = metro_dll.initiate
 initiate.restype = ctypes.POINTER(MetroMap)
@@ -61,51 +56,81 @@ initiate.restype = ctypes.POINTER(MetroMap)
 # Initialize the metro map
 metro_map = initiate()
 
+# Print the initial map
+print("Initial Metro Map:")
+print_map(metro_map)
+
 # Tkinter GUI setup
 class MetroNavigatorGUI:
     def __init__(self, master):
         self.master = master
         master.title("Metro Navigator")
-        self.from_label = ttk.Label(master, text="From Station:")
-        self.from_label.grid(row=0, column=0, padx=5, pady=5)
-        self.from_entry = ttk.Entry(master)
-        self.from_entry.grid(row=0, column=1, padx=5, pady=5)
 
-        self.to_label = ttk.Label(master, text="To Station:")
-        self.to_label.grid(row=1, column=0, padx=5, pady=5)
-        self.to_entry = ttk.Entry(master)
-        self.to_entry.grid(row=1, column=1, padx=5, pady=5)
+        # Entry widgets for "From" and "To" stations
+        self.from_station_entry = ttk.Entry(master)
+        self.from_station_entry.grid(row=0, column=0, padx=5, pady=5)
+
+        self.to_station_entry = ttk.Entry(master)
+        self.to_station_entry.grid(row=0, column=1, padx=5, pady=5)
+
+        # Find Route button
         self.find_route_button = ttk.Button(master, text="Find Route", command=self.find_route)
-        self.find_route_button.grid(row=2, column=0, columnspan=2, pady=10)
+        self.find_route_button.grid(row=1, column=0, columnspan=2, pady=10)
 
+         # Canvas for drawing red dot lines below the route button
+        self.line_canvas = tk.Canvas(master, width=500, height=50, background='white')
+        self.line_canvas.grid(row=1, column=0, columnspan=2, padx=10)
+
+        # Canvas for drawing red dot lines
+        self.canvas = tk.Canvas(master, width=500, height=300, background='white')
+        self.canvas.grid(row=2, column=0, columnspan=2, padx=10)
+
+        # Result label
         self.result_label = ttk.Label(master, text="")
         self.result_label.grid(row=3, column=0, columnspan=2, pady=5)
 
     def find_route(self):
-        # Get user input for "From" and "To" stations
-        from_station = self.from_entry.get()
-        to_station = self.to_entry.get()
+        from_station = self.from_station_entry.get()
+        to_station = self.to_station_entry.get()
 
-        # Find and print the route using Dijkstra's algorithm
+      
+        # Clear previous drawings
+        self.canvas.delete("all")
+        self.line_canvas.delete("all")
+
+# Draw horizontal lines connecting red dots below the route button
+        for i in range(metro_map.contents.numStations - 1):
+            x1 = i * 30 + 15
+            x2 = (i + 1) * 30 + 15
+            self.line_canvas.create_line(x1, 10, x2, 10, fill='red')
+            self.line_canvas.create_line(x1, 40, x2, 40, fill='red')
+
+        # Draw horizontal lines connecting red dots
+        for i in range(metro_map.contents.numStations - 1):
+            y1 = i * 30 + 15
+            y2 = (i + 1) * 30 + 15
+            self.canvas.create_line(10, y1, 250, y1, fill='red')
+            self.canvas.create_line(10, y2, 250, y2, fill='red')
+
+        # Draw red dots and station names
+        for i in range(metro_map.contents.numStations):
+            station_name = metro_map.contents.graph[i][0].station.decode('utf-8')
+            center_x = 250
+            center_y = i * 30 + 15
+            self.canvas.create_oval(center_x - 5, center_y - 5, center_x + 5, center_y + 5, fill='red')
+            self.canvas.create_text(center_x + 20, center_y, text=station_name, anchor='w')
+
+        
+        # Find and display the route using Dijkstra's algorithm
         result = dijkstra(metro_map, from_station.encode('utf-8'), to_station.encode('utf-8'))
         self.result_label.config(text=result.decode('utf-8'))
-
-
-
-
-   
-
-# Create the Tkinter window
 root = tk.Tk()
 app = MetroNavigatorGUI(root)
 
-# Print the initial map
-print("Initial Metro Map:")
-print_map(metro_map)
-
-
+ 
 # Run the Tkinter event loop
 root.mainloop()
-
+ 
 # Free the memory allocated for the metro map
 free_map(metro_map)
+
