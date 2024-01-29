@@ -132,37 +132,6 @@ __declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], 
     }
 }
 
-__declspec(dllexport) void printMap(struct MetroMap *map)
-{
-    for (int i = 0; i < map->numStations; i++)
-    {
-        struct Node *current = map->graph[i]->next; // Skip the empty station node
-        printf("%s (Time: %d, Lines: ", map->graph[i]->station, map->graph[i]->time);
-
-        for (int j = 0; j < map->graph[i]->numLines; j++)
-        {
-            printf("%d ", map->graph[i]->lineColors[j]);
-        }
-
-        printf("): ");
-
-        while (current != NULL)
-        {
-            printf("%s (Time: %d, Lines: ", current->station, current->time);
-
-            for (int j = 0; j < current->numLines; j++)
-            {
-                printf("%d ", current->lineColors[j]);
-            }
-
-            printf("), ");
-            current = current->next;
-        }
-
-        printf("\n");
-    }
-}
-
 __declspec(dllexport) void freeMap(struct MetroMap *map)
 {
     for (int i = 0; i < map->numStations; i++)
@@ -305,9 +274,6 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
             strcat(string, " -> ");
         }
     }
-    printf("%s", string);
-
-    // printf("\n");
 
     free(distance);
     free(visited);

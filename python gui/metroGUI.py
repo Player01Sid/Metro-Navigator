@@ -36,9 +36,6 @@ add_station.argtypes = [ctypes.POINTER(MetroMap), ctypes.c_char_p, ctypes.c_int]
 add_connection = metro_dll.addConnection
 add_connection.argtypes = [ctypes.POINTER(MetroMap), ctypes.c_char_p, ctypes.c_char_p, ctypes.c_int]
 
-print_map = metro_dll.printMap
-print_map.argtypes = [ctypes.POINTER(MetroMap)]
-
 free_map = metro_dll.freeMap
 free_map.argtypes = [ctypes.POINTER(MetroMap)]
 
@@ -176,10 +173,6 @@ class MetroNavigatorGUI:
 # Create the Tkinter window
 root = tk.Tk()
 app = MetroNavigatorGUI(root)
-
-# Print the initial map
-print("Initial Metro Map:")
-print_map(metro_map)
 
 # Run the Tkinter event loop
 root.mainloop()
