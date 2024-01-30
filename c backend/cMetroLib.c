@@ -123,7 +123,6 @@ __declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], 
                 temp1[idx1] = color[1];
             }
 
-            // Add the new color to the lineColors array for station 2
             if (idx2 < MAX_LINES)
             {
                 temp2[idx2] = color[0];
@@ -148,7 +147,6 @@ __declspec(dllexport) void freeMap(struct MetroMap *map)
     free(map);
 }
 
-// Dijkstra's Algorithm to find the shortest route
 __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], char endStation[])
 {
     int numVertices = map->numStations;
@@ -204,7 +202,7 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
 
         if (minIndex == -1)
         {
-            break; // No more reachable vertices
+            break;
         }
 
         visited[minIndex] = 1;
@@ -224,7 +222,7 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
 
             if (neighborIndex != -1 && !visited[neighborIndex])
             {
-                int newDistance = distance[minIndex] + 1; // Assuming each connection takes 1 unit of time
+                int newDistance = distance[minIndex] + 1;
                 if (newDistance < distance[neighborIndex])
                 {
                     distance[neighborIndex] = newDistance;
@@ -246,9 +244,6 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
         return string;
     }
 
-    // printf("Shortest route from %s to %s (Time: %d):\n", startStation, endStation, distance[endIndex]);
-
-    // Backtrack to find the path
     int currentVertex = endIndex;
     int path[numVertices];
     int pathLength = 0;
@@ -260,13 +255,12 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
     }
     char *string = (char *)malloc(100 * sizeof(char));
     strcpy(string, "Route: ");
-    // Print the path in reverse order
     for (int i = pathLength - 1; i >= 0; i--)
     {
         strcat(string, map->graph[path[i]]->station);
         strcat(string, ":");
         int temp = map->graph[path[i]]->lineColors[0];
-        char color[10]; // Assuming the integer won't exceed 10 digits
+        char color[10];
         sprintf(color, "%d", temp);
         strcat(string, color);
         if (i > 0)
@@ -300,64 +294,62 @@ __declspec(dllexport) int noStations(struct MetroMap *map)
 
 __declspec(dllexport) struct MetroMap *initiate()
 {
-    // Initialize the metro map
     struct MetroMap *metroMap = initializeMap(26);
 
-    // Add stations to the metro map
-    addStation(metroMap, "Station A", 1); // Line 1
-    addStation(metroMap, "Station B", 1); // Line 2
-    addStation(metroMap, "Station C", 1); // Line 3
-    addStation(metroMap, "Station D", 1); // Line 1
-    addStation(metroMap, "Station E", 1); // Line 2
-    addStation(metroMap, "Station F", 1); // Line 3
-    addStation(metroMap, "Station G", 1); // Line 1
-    addStation(metroMap, "Station H", 1); // Line 2
-    addStation(metroMap, "Station I", 3); // Line 2
-    addStation(metroMap, "Station J", 3); // Line 2
-    addStation(metroMap, "Station K", 3); // Line 2
-    addStation(metroMap, "Station L", 3); // Line 2
-    addStation(metroMap, "Station M", 3); // Line 2
-    addStation(metroMap, "Station N", 3); // Line 2
-    addStation(metroMap, "Station O", 3); // Line 2
-    addStation(metroMap, "Station P", 4); // Line 2
-    addStation(metroMap, "Station Q", 4); // Line 2
-    addStation(metroMap, "Station R", 4); // Line 2
-    addStation(metroMap, "Station S", 4); // Line 2
-    addStation(metroMap, "Station T", 4); // Line 2
-    addStation(metroMap, "Station U", 4); // Line 2
-    addStation(metroMap, "Station V", 2); // Line 2
-    addStation(metroMap, "Station W", 2); // Line 2
-    addStation(metroMap, "Station X", 2); // Line 2
-    addStation(metroMap, "Station Y", 2); // Line 2
-    addStation(metroMap, "Station Z", 2); // Line 2
+    addStation(metroMap, "Station A", 1);
+    addStation(metroMap, "Station B", 1);
+    addStation(metroMap, "Station C", 1);
+    addStation(metroMap, "Station D", 1);
+    addStation(metroMap, "Station E", 1);
+    addStation(metroMap, "Station F", 1);
+    addStation(metroMap, "Station G", 1);
+    addStation(metroMap, "Station H", 1);
+    addStation(metroMap, "Station I", 3);
+    addStation(metroMap, "Station J", 3);
+    addStation(metroMap, "Station K", 3);
+    addStation(metroMap, "Station L", 3);
+    addStation(metroMap, "Station M", 3);
+    addStation(metroMap, "Station N", 3);
+    addStation(metroMap, "Station O", 3);
+    addStation(metroMap, "Station P", 4);
+    addStation(metroMap, "Station Q", 4);
+    addStation(metroMap, "Station R", 4);
+    addStation(metroMap, "Station S", 4);
+    addStation(metroMap, "Station T", 4);
+    addStation(metroMap, "Station U", 4);
+    addStation(metroMap, "Station V", 2);
+    addStation(metroMap, "Station W", 2);
+    addStation(metroMap, "Station X", 2);
+    addStation(metroMap, "Station Y", 2);
+    addStation(metroMap, "Station Z", 2);
 
     // Add connections between stations
-    addConnection(metroMap, "Station A", "Station B"); // Line 1
-    addConnection(metroMap, "Station B", "Station C"); // Line 2
-    addConnection(metroMap, "Station C", "Station D"); // Line 3
-    addConnection(metroMap, "Station D", "Station E"); // Line 1
-    addConnection(metroMap, "Station E", "Station F"); // Line 2
-    addConnection(metroMap, "Station F", "Station G"); // Line 3
-    addConnection(metroMap, "Station G", "Station H"); // Line 1
-    addConnection(metroMap, "Station I", "Station J"); // Line 2
-    addConnection(metroMap, "Station J", "Station E"); // Line 2
-    addConnection(metroMap, "Station E", "Station K"); // Line 2
-    addConnection(metroMap, "Station K", "Station L"); // Line 2
-    addConnection(metroMap, "Station L", "Station M"); // Line 2
-    addConnection(metroMap, "Station M", "Station N"); // Line 2
-    addConnection(metroMap, "Station N", "Station O"); // Line 2
-    addConnection(metroMap, "Station P", "Station Q"); // Line 2
-    addConnection(metroMap, "Station Q", "Station R"); // Line 2
-    addConnection(metroMap, "Station R", "Station L"); // Line 2
-    addConnection(metroMap, "Station L", "Station S"); // Line 2
-    addConnection(metroMap, "Station S", "Station T"); // Line 2
-    addConnection(metroMap, "Station T", "Station U"); // Line 2
-    addConnection(metroMap, "Station V", "Station B"); // Line 2
-    addConnection(metroMap, "Station B", "Station W"); // Line 2
-    addConnection(metroMap, "Station W", "Station X"); // Line 2
-    addConnection(metroMap, "Station X", "Station L"); // Line 2
-    addConnection(metroMap, "Station L", "Station Y"); // Line 2
-    addConnection(metroMap, "Station Y", "Station Z"); // Line 2
+    addConnection(metroMap, "Station A", "Station B");
+    addConnection(metroMap, "Station B", "Station C");
+    addConnection(metroMap, "Station C", "Station D");
+    addConnection(metroMap, "Station D", "Station E");
+    addConnection(metroMap, "Station E", "Station F");
+    addConnection(metroMap, "Station F", "Station G");
+    addConnection(metroMap, "Station G", "Station H");
+    addConnection(metroMap, "Station I", "Station J");
+    addConnection(metroMap, "Station J", "Station E");
+    addConnection(metroMap, "Station E", "Station K");
+    addConnection(metroMap, "Station K", "Station L");
+    addConnection(metroMap, "Station L", "Station M");
+    addConnection(metroMap, "Station M", "Station N");
+    addConnection(metroMap, "Station N", "Station O");
+    addConnection(metroMap, "Station P", "Station Q");
+    addConnection(metroMap, "Station Q", "Station R");
+    addConnection(metroMap, "Station R", "Station L");
+    addConnection(metroMap, "Station L", "Station S");
+    addConnection(metroMap, "Station S", "Station T");
+    addConnection(metroMap, "Station T", "Station U");
+    addConnection(metroMap, "Station V", "Station B");
+    addConnection(metroMap, "Station B", "Station W");
+    addConnection(metroMap, "Station W", "Station X");
+    addConnection(metroMap, "Station X", "Station L");
+    addConnection(metroMap, "Station L", "Station Y");
+    addConnection(metroMap, "Station Y", "Station Z");
 
     return metroMap;
 }

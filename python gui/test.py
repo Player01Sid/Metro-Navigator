@@ -1,16 +1,11 @@
 import ctypes
 import tkinter as tk
 from tkinter import ttk
-import subprocess
-import os
 
 # Load the DLL
-directory = os.path.dirname(os.path.abspath(__file__))
-parent_directory = os.path.dirname(directory)
-metro_dll = ctypes.CDLL(parent_directory+"/c backend/metro.dll")
-python_program_path = directory + "/map.py"
+metro_dll = ctypes.CDLL("./c backend/metro.dll")
 
-# Node
+# Define Node structure first
 class Node(ctypes.Structure):
     _fields_ = [
         ('station', ctypes.c_char * 50),
@@ -20,7 +15,7 @@ class Node(ctypes.Structure):
         ('next', ctypes.POINTER('Node'))
     ]
 
-# MetroMap structure
+# Define MetroMap structure
 class MetroMap(ctypes.Structure):
     _fields_ = [
         ('graph', ctypes.POINTER(ctypes.POINTER(Node))),
@@ -52,9 +47,11 @@ noStations = metro_dll.noStations
 noStations.argtypes = [ctypes.POINTER(MetroMap)]
 noStations.restype = ctypes.c_int
 
+# Load the initiate function from the DLL
 initiate = metro_dll.initiate
 initiate.restype = ctypes.POINTER(MetroMap)
 
+# Initialize the metro map
 metro_map = initiate()
 
 class MetroNavigatorGUI:
@@ -72,13 +69,10 @@ class MetroNavigatorGUI:
         self.to_entry.grid(row=1, column=1, padx=5, pady=5)
         self.find_route_button = ttk.Button(master, text="Find Route", command=self.find_route)
         self.find_route_button.grid(row=2, column=0, columnspan=1, pady=10)
-
         self.noStations_button = ttk.Button(master, text="No. of Stations", command=self.count_stations)
-        self.noStations_button.grid(row=2, column=2, columnspan=1, pady=10)
+        self.noStations_button.grid(row=2, column=1, columnspan=2, pady=10)
 
-        self.map_button = ttk.Button(master, text="Map", command=self.run_map_program)
-        self.map_button.grid(row=2, column=1, columnspan=1, pady=10)
-
+        # Add a Canvas widget for the station graph
         self.canvas = tk.Canvas(master, width=300, height=300)
         self.canvas.grid(row=3, column=0, columnspan=2, pady=10)
 
@@ -89,35 +83,38 @@ class MetroNavigatorGUI:
         result = noStations(metro_map)
         self.result_label.config(text="No. of Stations: " + str(result))
 
-    def run_map_program(self):
-        subprocess.run(["python", python_program_path])
-
     def find_route(self):
+        # Get user input for "From" and "To" stations
         from_station = self.from_entry.get()
         to_station = self.to_entry.get()
 
+        # Find the route using Dijkstra's algorithm
         result_bytes = dijkstra(metro_map, from_station.encode('utf-8'), to_station.encode('utf-8'))
 
+        # Convert bytes to string
         result_str = result_bytes.decode('utf-8')
 
+        # Display the result using generate_graph_gui
         self.generate_graph_gui(result_str)
 
     def generate_graph_gui(self, input_str):
         stations = self.parse_input(input_str)
 
+        # Clear the existing drawings on the canvas
         self.canvas.delete("all")
 
         dot_radius = 3
-        line_width = 0.5  
-        line_length_factor = 0.55 
-        color_change_spacing = 16  
-        vertical_shift = 4  
-        horizontal_shift = 4  
+        line_width = 0.5  # Adjusted to one-third of the original
+        line_length_factor = 0.55  # Adjusted for a slightly shorter line length
+        color_change_spacing = 16  # Increased space between dots of different colors
+        vertical_shift = 4  # Shift "Change Train" text 4 pixels down
+        horizontal_shift = 4  # Shift "Change Train" text 4 pixels to the right
 
         for i, (station, color) in enumerate(stations):
             x = 100
             y = 50 + i * (15 + color_change_spacing)
 
+            # Assign colors based on the numerical value
             if color == 1:
                 dot_color = 'red'
             elif color == 2:
@@ -127,7 +124,7 @@ class MetroNavigatorGUI:
             elif color == 4:
                 dot_color = 'blue'
             else:
-                dot_color = 'green'  
+                dot_color = 'green'  # Default to green for unknown colors
 
             self.canvas.create_oval(x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius, outline='black', fill='white', width=1)
             self.canvas.create_oval(x - dot_radius, y - dot_radius, x + dot_radius, y + dot_radius, outline='black', fill=dot_color, width=1)
@@ -136,6 +133,7 @@ class MetroNavigatorGUI:
             if i < len(stations) - 1:
                 next_color = stations[i + 1][1]
                 if color != next_color:
+                    # Display "Change Train" 4 pixels down and 4 pixels to the right instead of drawing a line
                     change_x = x + 20 + horizontal_shift
                     change_y = y + 8 + vertical_shift
                     self.canvas.create_text(change_x, change_y, text="Change Train", anchor='w')
@@ -153,11 +151,14 @@ class MetroNavigatorGUI:
 
 
     def parse_input(self, input_str):
+        # Check if the input string starts with "Route: "
         if input_str.startswith("Route: "):
-            input_str = input_str[len("Route: "):]  
+            input_str = input_str[len("Route: "):]  # Remove "Route: " from the beginning
 
+        # Split the input string based on '->' and remove leading/trailing spaces
         stations = [s.strip() for s in input_str.split("->")]
 
+        # Ensure each station has the expected format before parsing
         valid_stations = []
         for s in stations:
             parts = s.split(":")
@@ -169,9 +170,12 @@ class MetroNavigatorGUI:
 
 
 
+# Create the Tkinter window
 root = tk.Tk()
 app = MetroNavigatorGUI(root)
 
+# Run the Tkinter event loop
 root.mainloop()
 
+# Free the memory allocated for the metro map
 free_map(metro_map)
