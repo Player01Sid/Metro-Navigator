@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
-
+#include <stdbool.h>
 #define MAX_LINES 5 // Maximum number of lines
 
 __declspec(dllexport) const char *getRouteText(const char *buffer)
@@ -17,6 +17,7 @@ struct Node
     int lineColors[5]; // Array to store line colors
     int numLines;      // Number of lines associated with the station
     struct Node *next;
+    int connections;
 };
 
 struct MetroMap
@@ -33,6 +34,11 @@ struct Node *createNode(char station[], int lineColor)
         strcpy(newNode->station, station);
         newNode->numLines = 1;
         newNode->lineColors[0] = lineColor;
+        newNode->connections = 0;
+        for (int i = 1; i < 5; i++)
+        {
+            newNode->lineColors[i] = 0;
+        }
         newNode->next = NULL;
     }
     return newNode;
@@ -89,6 +95,9 @@ __declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], 
         color[0] = map->graph[index1]->lineColors[0];
         color[1] = map->graph[index2]->lineColors[0];
 
+        map->graph[index1]->connections = map->graph[index1]->connections + 1;
+        map->graph[index2]->connections = map->graph[index2]->connections + 1;
+
         struct Node *newNode1 = createNode(station2, color[0]);
         newNode1->next = map->graph[index1]->next;
         map->graph[index1]->next = newNode1;
@@ -118,12 +127,12 @@ __declspec(dllexport) void addConnection(struct MetroMap *map, char station1[], 
             }
 
             // Add the new color to the lineColors array for station 1
-            if (idx1 < MAX_LINES)
+            if (idx1 < MAX_LINES && temp1[idx1 - 1] != color[1] && map->graph[index1]->connections > 2)
             {
                 temp1[idx1] = color[1];
             }
 
-            if (idx2 < MAX_LINES)
+            if (idx2 < MAX_LINES && temp2[idx2 - 1] != color[0] && map->graph[index2]->connections > 2)
             {
                 temp2[idx2] = color[0];
             }
@@ -259,10 +268,53 @@ __declspec(dllexport) char *dijkstra(struct MetroMap *map, char startStation[], 
     {
         strcat(string, map->graph[path[i]]->station);
         strcat(string, ":");
-        int temp = map->graph[path[i]]->lineColors[0];
-        char color[10];
-        sprintf(color, "%d", temp);
-        strcat(string, color);
+        if (i != pathLength - 1)
+        {
+            if (map->graph[path[i]]->lineColors[0] != map->graph[path[i + 1]]->lineColors[0])
+            {
+                bool ans = false;
+                for (int j = 0; j < 5; j++)
+                {
+                    int a = map->graph[path[i]]->lineColors[j];
+                    for (int k = 0; k < 5; k++)
+                    {
+                        int b = map->graph[path[i + 1]]->lineColors[k];
+
+                        if (a == b)
+                        {
+                            int temp = a;
+                            char color[10];
+                            sprintf(color, "%d", temp);
+                            strcat(string, color);
+                            ans = 1;
+                        }
+                        if (ans == 1)
+                        {
+                            break;
+                        }
+                    }
+                    if (ans == 1)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                int temp = map->graph[path[i]]->lineColors[0];
+                char color[10];
+                sprintf(color, "%d", temp);
+                strcat(string, color);
+            }
+        }
+        else
+        {
+            int temp = map->graph[path[i]]->lineColors[0];
+            char color[10];
+            sprintf(color, "%d", temp);
+            strcat(string, color);
+        }
+
         if (i > 0)
         {
             strcat(string, " -> ");
@@ -323,7 +375,6 @@ __declspec(dllexport) struct MetroMap *initiate()
     addStation(metroMap, "Station Y", 2);
     addStation(metroMap, "Station Z", 2);
 
-    // Add connections between stations
     addConnection(metroMap, "Station A", "Station B");
     addConnection(metroMap, "Station B", "Station C");
     addConnection(metroMap, "Station C", "Station D");

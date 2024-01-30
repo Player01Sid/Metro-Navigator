@@ -17,7 +17,8 @@ class Node(ctypes.Structure):
         ('time', ctypes.c_int),
         ('lineColors', ctypes.c_int * 5),
         ('numLines', ctypes.c_int),
-        ('next', ctypes.POINTER('Node'))
+        ('next', ctypes.POINTER('Node')),
+        ('connections', ctypes.c_int)
     ]
 
 # MetroMap structure
@@ -146,11 +147,6 @@ class MetroNavigatorGUI:
                     line_length = (line_y2 - line_y1) * line_length_factor
                     line_y2 = y + 15 + color_change_spacing
                     self.canvas.create_line(line_x, line_y1, line_x, line_y2, fill='black', width=line_width)
-
-
-
-
-
 
     def parse_input(self, input_str):
         if input_str.startswith("Route: "):
