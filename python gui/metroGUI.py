@@ -13,7 +13,7 @@ python_program_path = directory + "/map.py"
 # Node
 class Node(ctypes.Structure):
     _fields_ = [
-        ('station', ctypes.c_char * 50),
+        ('station', ctypes.c_char * 50), 
         ('time', ctypes.c_int),
         ('lineColors', ctypes.c_int * 5),
         ('numLines', ctypes.c_int),
